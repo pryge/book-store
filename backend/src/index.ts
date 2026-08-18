@@ -1,15 +1,14 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import routes from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+import { AppError } from './utils/appError.js';
 
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION! Shutting down...', err);
   process.exit(1);
 });
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +20,11 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/', routes);
+app.use('/api', routes);
+
+app.use((req, _res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
 
 app.use(errorHandler);
 
